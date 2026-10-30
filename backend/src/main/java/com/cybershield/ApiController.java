@@ -26,7 +26,7 @@ public class ApiController {
  public ApiController(AccountRepository a,SessionRepository s,ProgressRepository p,ObjectMapper m){accounts=a;sessions=s;progress=p;mapper=m;}
  public record Credentials(@NotBlank @Email String email,@NotBlank String password){}
  public record Signup(@NotBlank @Email String email,@NotBlank @Size(min=2,max=80) String displayName,@NotBlank @Size(min=12,max=128) String password){}
- public record AccountView(Long id,String email,String displayName){}
+ public record AccountView(Long id,String email,String displayName,String role){}
  public record LoginResponse(String token,AccountView account){}
  public record ProgressPayload(JsonNode progress){}
  public record ProgressResponse(JsonNode progress,Instant updatedAt){}
@@ -34,7 +34,7 @@ public class ApiController {
   try {byte[] digest=MessageDigest.getInstance("SHA-256").digest(token.getBytes(StandardCharsets.UTF_8));return HexFormat.of().formatHex(digest);}
   catch(NoSuchAlgorithmException e){throw new IllegalStateException(e);}
  }
- private AccountView view(UserAccount a){return new AccountView(a.id,a.email,a.displayName);}
+ private AccountView view(UserAccount a){return new AccountView(a.id,a.email,a.displayName,a.role);}
  private LoginResponse issue(UserAccount a){
   byte[] bytes=new byte[32];random.nextBytes(bytes);
   String token=Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
@@ -47,7 +47,7 @@ public class ApiController {
   if(token.length()<30 || token.length()>128) throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,"Invalid session");
   return token;
  }
- private UserAccount authenticated(String authorization){
+ UserAccount authenticated(String authorization){
   SessionToken session=sessions.findByTokenHash(hash(bearer(authorization))).orElseThrow(()->new ResponseStatusException(HttpStatus.UNAUTHORIZED,"Invalid session"));
   if(!session.expiresAt.isAfter(Instant.now())) throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,"Session expired");
   return session.account;
