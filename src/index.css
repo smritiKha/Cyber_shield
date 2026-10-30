@@ -364,3 +364,20 @@ input:not([type="radio"]):focus{border-color:#31867a;box-shadow:0 0 0 3px #31867
 .phishing-finish .primary-button{margin-top:4px}
 @media(max-width:600px){.phishing-level{align-items:flex-start;flex-direction:column}}
 @media(prefers-reduced-motion:reduce){.phishing-track>span{transition:none}}
+
+/* Password lab: educational example comparison */
+.password-intro{font-size:13px;line-height:1.75;color:#657b78;margin:12px 0 20px}
+.password-presets{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.password-preset{min-height:106px;padding:16px 13px;text-align:left;background:#fbfcfb;border:1px solid #dfe8e2;border-radius:10px;color:#2e4943;transition:border-color .2s,background .2s}
+.password-preset:hover{border-color:#85b3a3;background:#f4faf6}
+.password-preset.selected{background:#eaf4ee;border-color:#348574;box-shadow:inset 0 0 0 1px #348574}
+.password-preset strong{display:block;font-size:12px;line-height:1.45}
+.password-preset small{display:block;font-size:10px;line-height:1.55;color:#6e837d;margin-top:8px}
+.password-lab-actions{margin-top:18px}
+.password-caution{margin-top:17px;font-size:11px;line-height:1.7;color:#778a85}
+.password-practices{display:grid;gap:15px;margin:22px 0}
+.password-practices>div{display:flex;align-items:flex-start;gap:10px;font-size:12px;line-height:1.65;color:#536f66}
+.password-practices svg{flex-shrink:0;color:#287c67;margin-top:2px}
+.password-preset:focus-visible{outline:3px solid #257c70;outline-offset:3px}
+@media(max-width:650px){.password-presets{grid-template-columns:1fr}.password-preset{min-height:0}}
+@media(prefers-reduced-motion:reduce){.password-preset{transition:none}}
