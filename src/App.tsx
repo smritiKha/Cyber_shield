@@ -2,8 +2,9 @@ import { useEffect, useState } from 'react'
 import { Activity, ArrowRight, Award, BookOpen, CheckCircle2, ChevronRight, CircleHelp, Eye, Fingerprint, GraduationCap, Home, KeyRound, Lock, MailWarning, Menu, RotateCcw, Shield, ShieldCheck, Sparkles, Target, TrendingUp, X, XCircle, ClipboardCheck } from 'lucide-react'
 
 type Page = 'overview' | 'phishing' | 'password' | 'academy' | 'quiz' | 'achievements'
-type Progress = { completedLessons: string[]; correctAnswers: number; attemptedAnswers: number; phishingIndex: number; quizBest: number }
-const initial: Progress = { completedLessons: [], correctAnswers: 0, attemptedAnswers: 0, phishingIndex: 0, quizBest: 0 }
+type QuizRecord = { category: string; difficulty: string; score: number; total: number; completedAt: string }
+type Progress = { completedLessons: string[]; correctAnswers: number; attemptedAnswers: number; phishingIndex: number; quizBest: number; quizHistory: QuizRecord[] }
+const initial: Progress = { completedLessons: [], correctAnswers: 0, attemptedAnswers: 0, phishingIndex: 0, quizBest: 0, quizHistory: [] }
 const challenges = [
   { from: 'Account Services <security@account-alert.example>', subject: 'Immediate verification required', body: 'Your account will be suspended in 30 minutes. Click the link below and enter your password to restore access.', action: 'Verify now: https://account-verify.example/login', phishing: true, clues: ['Urgent deadline intended to create panic', 'Requests your password through a link', 'Unfamiliar sender and destination'] },
   { from: 'Campus Library <library@university.example>', subject: 'Your library orientation schedule', body: 'Hello, your library orientation is scheduled for Tuesday at 10:00. Please check the official student portal by opening it from your saved bookmark.', action: 'No link or personal information requested.', phishing: false, clues: ['No pressure or threatening language', 'Does not ask for sensitive information', 'Encourages use of an independently accessed portal'] },
@@ -58,8 +59,9 @@ const quizQuestions: QuizQuestion[] = [
   {category:'Network safety',difficulty:'Advanced',question:'Why are browser and operating-system updates important?',choices:['They make every website legitimate','They can fix known security weaknesses','They eliminate the need for caution'],correct:1,explanation:'Updates often address vulnerabilities, but safe online habits remain necessary.'},
 ]
 const quizCategories = ['All topics','Phishing','Authentication','Privacy','Network safety'] as const
-function loadProgress(): Progress { try { const value = JSON.parse(localStorage.getItem('cybershield-progress-v1') || 'null'); return value && Array.isArray(value.completedLessons) ? { ...initial, ...value } : initial } catch { return initial } }
+function loadProgress(): Progress { try { const value = JSON.parse(localStorage.getItem('cybershield-progress-v1') || 'null'); return value && Array.isArray(value.completedLessons) ? { ...initial, ...value, quizHistory: Array.isArray(value.quizHistory) ? value.quizHistory.filter((r: unknown) => r && typeof r === 'object' && typeof (r as QuizRecord).score === 'number').slice(-100) : [] } : initial } catch { return initial } }
 function downloadReport(progress: Progress) {
+  const history = progress.quizHistory || []
   const report = {
     project: 'CyberShield — Learn. Detect. Defend.',
     generatedAt: new Date().toISOString(),
@@ -68,6 +70,9 @@ function downloadReport(progress: Progress) {
     phishingAttempts: progress.attemptedAnswers,
     correctPhishingAnswers: progress.correctAnswers,
     bestQuizScore: progress.quizBest,
+    quizAttempts: history.length,
+    recentQuizAttempts: history.slice(-15),
+    topicPerformance: ['Phishing','Authentication','Privacy','Network safety'].map(topic => { const records = history.filter(r => r.category === topic); return {topic, attempts: records.length, correct: records.reduce((sum,r) => sum + r.score,0), questions: records.reduce((sum,r) => sum + r.total,0)} }),
     quizQuestionsAvailable: quizQuestions.length,
     accuracyPercent: progress.attemptedAnswers ? Math.round(progress.correctAnswers / progress.attemptedAnswers * 100) : 0,
     note: 'Self-directed educational practice; not a professional certification or security assessment.',
@@ -79,6 +84,25 @@ function downloadReport(progress: Progress) {
   link.download = 'cybershield-learning-report.json'
   link.click()
   URL.revokeObjectURL(url)
+}
+function downloadPrintableReport(progress: Progress) {
+  const history = progress.quizHistory || []
+  const escapeHtml = (value: string) => value.replace(/[&<>"']/g, character => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[character] || character))
+  const rows = ['Phishing','Authentication','Privacy','Network safety'].map(topic => {
+    const records = history.filter(r => r.category === topic)
+    const correct = records.reduce((sum,r) => sum + r.score,0)
+    const total = records.reduce((sum,r) => sum + r.total,0)
+    return '<tr><td>' + escapeHtml(topic) + '</td><td>' + (total ? Math.round(correct / total * 100) + '%' : 'Not yet assessed') + '</td><td>' + records.length + '</td></tr>'
+  }).join('')
+  const accuracy = progress.attemptedAnswers ? Math.round(progress.correctAnswers / progress.attemptedAnswers * 100) + '%' : 'Not yet assessed'
+  const html = `<!doctype html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>CyberShield Learning Report</title><style>body{font-family:Arial,Helvetica,sans-serif;color:#263d3a;max-width:780px;margin:48px auto;padding:0 25px;line-height:1.6}header{border-bottom:3px solid #176b69;padding-bottom:24px}h1{font-size:30px;letter-spacing:-1px;margin:6px 0}h2{font-size:18px;margin-top:32px}.kicker{color:#176b69;font-size:12px;font-weight:bold;letter-spacing:2px}.muted{color:#6b7e7a}.metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:25px 0}.metric{background:#eff5f1;padding:16px;border-radius:8px}.metric strong{display:block;font-size:25px}.metric span{font-size:11px}table{width:100%;border-collapse:collapse}td,th{border-bottom:1px solid #dce7e0;text-align:left;padding:12px}th{background:#f1f6f2}footer{margin-top:40px;font-size:11px;color:#72837d;border-top:1px solid #dce7e0;padding-top:16px}@media print{body{margin:12px auto}.metric{print-color-adjust:exact;-webkit-print-color-adjust:exact}}</style></head><body><header><div class="kicker">CYBERSHIELD · LEARNING SUMMARY</div><h1>Personal learning report</h1><p class="muted">Generated ${escapeHtml(new Date().toLocaleDateString())} · Progress saved locally on this device</p></header><div class="metrics"><div class="metric"><strong>${progress.completedLessons.length}/${lessons.length}</strong><span>Modules completed</span></div><div class="metric"><strong>${accuracy}</strong><span>Phishing practice accuracy</span></div><div class="metric"><strong>${history.length}</strong><span>Recorded quiz attempts</span></div></div><h2>Completed learning modules</h2><p>${progress.completedLessons.length ? lessons.filter(l => progress.completedLessons.includes(l.id)).map(l => escapeHtml(l.title)).join(' · ') : 'No modules completed yet.'}</p><h2>Quiz topic performance</h2><table><thead><tr><th>Topic</th><th>Accuracy</th><th>Attempts</th></tr></thead><tbody>${rows}</tbody></table><h2>Practice overview</h2><p>Phishing messages reviewed: ${progress.attemptedAnswers}. Correct assessments: ${progress.correctAnswers}. Best beginner all-topic quiz: ${progress.quizBest}/5.</p><footer>This document summarises self-directed educational activity. It is not a certification, identity verification, or professional security assessment. To save a PDF, open this file in a browser and choose Print → Save as PDF.</footer></body></html>`
+  const blob = new Blob([html], {type:'text/html;charset=utf-8'})
+  const url = URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.href = url
+  link.download = 'cybershield-learning-report.html'
+  link.click()
+  setTimeout(() => URL.revokeObjectURL(url), 1000)
 }
 function getPasswordFeedback(password: string) {
   if (!password) return { score: 0, label: 'Not evaluated', hints: ['Try a fictional example passphrase — never enter a real password.'] }
@@ -114,7 +138,7 @@ export default function App() {
   const quizScore = activeQuizQuestions.reduce((total, question, index) => total + Number(quizAnswers[index] === question.correct), 0)
   const quizComplete = activeQuizQuestions.length > 0 && activeQuizQuestions.every((_, index) => quizAnswers[index] !== undefined)
   const quizPercent = activeQuizQuestions.length ? Math.round(quizScore / activeQuizQuestions.length * 100) : 0
-  function finishQuiz() { if (!quizComplete || quizSubmitted) return; setQuizSubmitted(true); if (quizDifficulty === 'Beginner' && quizCategory === 'All topics') setProgress(p => ({ ...p, quizBest: Math.max(p.quizBest || 0, quizScore) })) }
+  function finishQuiz() { if (!quizComplete || quizSubmitted) return; setQuizSubmitted(true); setProgress(p => ({ ...p, quizBest: quizDifficulty === 'Beginner' && quizCategory === 'All topics' ? Math.max(p.quizBest || 0, quizScore) : p.quizBest, quizHistory: [...(p.quizHistory || []), {category: quizCategory, difficulty: quizDifficulty, score: quizScore, total: activeQuizQuestions.length, completedAt: new Date().toISOString()}, ...((quizCategory === 'All topics') ? activeQuizQuestions.map((q,i) => ({category:q.category,difficulty:quizDifficulty,score:Number(quizAnswers[i] === q.correct),total:1,completedAt:new Date().toISOString()})) : [])].slice(-100) })) }
   function retryQuiz() { setQuizAnswers({}); setQuizSubmitted(false) }
   function changeQuizDifficulty(value: QuizDifficulty) { setQuizDifficulty(value); retryQuiz() }
   function changeQuizCategory(value: (typeof quizCategories)[number]) { setQuizCategory(value); retryQuiz() }
