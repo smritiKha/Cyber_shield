@@ -498,3 +498,44 @@ input:not([type="radio"]):focus{border-color:#31867a;box-shadow:0 0 0 3px #31867
 .visually-hidden-input{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 .restore-message{font-size:12px;color:#236a57;margin:15px 0 0;line-height:1.6}
 .report-actions button:focus-visible,.roadmap-step-card button:focus-visible{outline:3px solid #1f7869;outline-offset:3px}
+
+/* Full-stack account and URL awareness */
+.account-panel{max-width:850px;padding:30px}
+.account-panel-head{display:flex;align-items:center;gap:15px;margin-bottom:15px}
+.account-panel-icon{display:grid;place-items:center;width:48px;height:48px;border-radius:12px;background:#e5f3ea;color:#23745f}
+.account-panel-head h2{font-size:23px;color:#294b40;margin:7px 0 0;letter-spacing:-.035em}
+.account-panel-desc,.account-signed-in p{color:#657d72;font-size:13px;line-height:1.8;max-width:650px}
+.account-switch{display:flex;gap:7px;padding:5px;background:#eef4ef;border-radius:10px;width:max-content;margin:24px 0 20px}
+.account-switch button{border:0;border-radius:8px;background:transparent;color:#647e73;padding:10px 19px;font-size:12px;font-weight:700}
+.account-switch button.selected{background:#fff;color:#246d59;box-shadow:0 2px 7px #2c584016}
+.account-form{display:grid;gap:16px;max-width:440px}
+.account-form label{display:grid;gap:7px;color:#344f45;font-size:12px;font-weight:700}
+.account-form input,.url-input{width:100%;height:45px;padding:0 13px;background:#fff;border:1px solid #d4e2d8;border-radius:9px;color:#2c4a3e;font:inherit;font-size:13px}
+.account-form input:focus-visible,.url-input:focus-visible,.account-switch button:focus-visible,.url-examples button:focus-visible{outline:3px solid #267965;outline-offset:2px}
+.account-hint{display:flex;align-items:flex-start;gap:9px;color:#72877b;font-size:11px;line-height:1.7;max-width:620px;margin-top:15px}
+.account-hint svg{flex-shrink:0;margin-top:1px}
+.account-error{color:#a43639;font-size:12px;margin:0}
+.account-avatar{border:0;display:grid;place-items:center;font-weight:700}
+.url-lab{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(240px,1fr);gap:20px}
+.url-lab-main,.url-lab-guide{padding:27px}
+.url-lab-main h2{font-size:22px;color:#294c40;margin:13px 0}
+.url-lab-main>p,.url-lab-guide>p{font-size:12px;line-height:1.85;color:#687f74}
+.url-examples{display:flex;gap:9px;flex-wrap:wrap;margin:22px 0}
+.url-examples button{border:1px solid #d8e6db;background:#f8fbf8;color:#4a7563;border-radius:20px;padding:9px 12px;font-size:11px}
+.url-examples button.selected{background:#e0f2e8;border-color:#2b836b;color:#206b57}
+.url-input{margin:8px 0 12px}
+.url-results{border-top:1px solid #e4ede6;margin-top:19px;padding-top:18px}
+.url-results h3{display:flex;gap:9px;align-items:center;font-size:14px;color:#2b4c41}
+.url-host{background:#f2f7f3;padding:13px;border-radius:9px;margin:15px 0;overflow-wrap:anywhere}
+.url-host span{display:block;font-size:10px;font-weight:800;color:#6c8577;letter-spacing:.08em}
+.url-host strong{font-size:14px;color:#286f5b}
+.url-finding{display:flex;align-items:flex-start;gap:11px;border:1px solid #e1e9e2;border-radius:9px;padding:13px;margin-top:10px;color:#536e62;font-size:12px;line-height:1.65}
+.url-finding svg{flex-shrink:0;margin-top:2px;color:#347d65}
+.url-finding.caution{background:#fff9f0;border-color:#f0e2c8}
+.url-finding.caution svg{color:#aa7629}
+.url-lab-guide>svg{color:#2d7d65}
+.url-lab-guide h3{font-size:18px;margin:16px 0;color:#2a4b3e}
+.url-lesson-note{display:flex;align-items:flex-start;gap:9px;border-top:1px solid #e4ede6;padding-top:17px;color:#47725f;font-size:11px;line-height:1.7}
+.url-lesson-note svg{flex-shrink:0}
+@media(max-width:900px){.url-lab{grid-template-columns:1fr}}
+@media(max-width:600px){.account-panel,.url-lab-main,.url-lab-guide{padding:19px}.account-panel-head h2{font-size:19px}}
