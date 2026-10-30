@@ -219,11 +219,15 @@ export default function App() {
   },[progress,account,syncReady,accountLoading])
   async function signedIn(token:string,who:Account) {
     setSyncReady(false)
-    const stored=await api.load(token)
     saveToken(token);sessionRef.current=token
     setAccount(who)
-    setProgress(normalizeProgress(stored.progress) ?? initial)
-    setSyncStatus('Account progress loaded')
+    try {
+      const stored=await api.load(token)
+      setProgress(normalizeProgress(stored.progress) ?? initial)
+      setSyncStatus('Account progress loaded')
+    } catch (error) {
+      setSyncStatus('Signed in successfully. Learning progress could not be loaded: '+(error instanceof Error?error.message:'Server unavailable'))
+    }
     setSyncReady(true)
   }
   function signedOut() {
