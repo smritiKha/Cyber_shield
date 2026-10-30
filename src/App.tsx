@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
+import AccountPanel from './AccountPanel'
+import { api, clearToken, readToken, saveToken, type Account } from './api'
 import { Activity, ArrowRight, Award, BookOpen, CheckCircle2, ChevronRight, CircleHelp, Eye, Fingerprint, GraduationCap, Home, KeyRound, Lock, MailWarning, Menu, RotateCcw, Shield, ShieldCheck, Sparkles, Target, TrendingUp, X, XCircle, ClipboardCheck } from 'lucide-react'
 
-type Page = 'overview' | 'roadmap' | 'phishing' | 'password' | 'academy' | 'quiz' | 'achievements'
+type Page = 'overview' | 'account' | 'url-safety' | 'roadmap' | 'phishing' | 'password' | 'academy' | 'quiz' | 'achievements'
 type QuizRecord = { category: string; difficulty: string; score: number; total: number; completedAt: string; kind?: 'attempt' | 'topic' }
 type Progress = { completedLessons: string[]; correctAnswers: number; attemptedAnswers: number; phishingIndex: number; quizBest: number; quizHistory: QuizRecord[] }
 const initial: Progress = { completedLessons: [], correctAnswers: 0, attemptedAnswers: 0, phishingIndex: 0, quizBest: 0, quizHistory: [] }
@@ -33,7 +35,7 @@ const lessonGuides: Record<string, { points: { heading: string; body: string }[]
   networks: { points: [{ heading: 'Keep software current', body: 'Install trusted operating-system, browser, and app updates to receive important security fixes.' }, { heading: 'Understand HTTPS', body: 'HTTPS encrypts information in transit. It does not guarantee a website or seller is legitimate.' }, { heading: 'Be thoughtful on shared networks', body: 'Prefer trusted connections, check the website address, and avoid unexpected downloads or prompts.' }], question: 'What does the padlock or HTTPS in a browser tell you?', choices: ['The website is guaranteed honest', 'The connection is encrypted, but the site still needs scrutiny', 'Every download on the site is safe'], correct: 1, explanation: 'Encryption protects the connection; it does not establish the website’s trustworthiness.' },
 }
 const nav: { id: Page; label: string; icon: typeof Home }[] = [
-  { id: 'overview', label: 'Overview', icon: Home }, { id: 'roadmap', label: 'Learning roadmap', icon: Target }, { id: 'phishing', label: 'Phishing lab', icon: MailWarning },
+  { id: 'overview', label: 'Overview', icon: Home }, { id: 'account', label: 'My account', icon: Fingerprint }, { id: 'url-safety', label: 'URL safety', icon: Eye }, { id: 'roadmap', label: 'Learning roadmap', icon: Target }, { id: 'phishing', label: 'Phishing lab', icon: MailWarning },
   { id: 'password', label: 'Password lab', icon: KeyRound }, { id: 'academy', label: 'Learning academy', icon: BookOpen },
   { id: 'quiz', label: 'Knowledge quiz', icon: ClipboardCheck },
   { id: 'achievements', label: 'Achievements', icon: Award },
@@ -142,6 +144,11 @@ function getPasswordFeedback(password: string) {
 }
 export default function App() {
   const [page, setPage] = useState<Page>('overview')
+  const [account, setAccount] = useState<Account | null>(null)
+  const [accountLoading, setAccountLoading] = useState(Boolean(readToken()))
+  const [syncStatus, setSyncStatus] = useState('Guest mode · progress saved on this device')
+  const [syncReady, setSyncReady] = useState(false)
+  const sessionRef = useRef<string | null>(readToken())
   const [progress, setProgress] = useState<Progress>(loadProgress)
   const backupInput = useRef<HTMLInputElement>(null)
   const [restoreMessage, setRestoreMessage] = useState('')
@@ -156,7 +163,55 @@ export default function App() {
   const [activeLesson, setActiveLesson] = useState<string | null>(null)
   const [lessonAnswers, setLessonAnswers] = useState<Record<string, number>>({})
   const [lessonChecked, setLessonChecked] = useState<Record<string, boolean>>({})
-  useEffect(() => { localStorage.setItem('cybershield-progress-v1', JSON.stringify(progress)) }, [progress])
+  useEffect(() => {
+    const token = sessionRef.current
+    if (!token) { setSyncReady(true); return }
+    let active = true
+    ;(async () => {
+      try {
+        const [who, stored] = await Promise.all([api.me(token), api.load(token)])
+        if (!active) return
+        setAccount(who)
+        setProgress(normalizeProgress(stored.progress) ?? initial)
+        setSyncStatus('Account progress loaded')
+        setSyncReady(true)
+      } catch {
+        if (!active) return
+        clearToken();sessionRef.current=null;setAccount(null);setSyncStatus('Session expired or server unavailable. Guest mode is active.');setSyncReady(true)
+      } finally { if (active) setAccountLoading(false) }
+    })()
+    return () => { active=false }
+  }, [])
+  useEffect(() => {
+    if (!accountLoading) localStorage.setItem('cybershield-progress-v1', JSON.stringify(progress))
+    const token=sessionRef.current
+    if (!token || !syncReady || !account) return
+    const timer=window.setTimeout(() => {
+      void api.save(token,progress).then(() => {
+        if (sessionRef.current === token) setSyncStatus('Progress saved to your account')
+      }).catch(error => {
+        if (sessionRef.current === token) setSyncStatus('Cloud save failed: '+(error instanceof Error ? error.message : 'Check the server'))
+      })
+    },1000)
+    return () => window.clearTimeout(timer)
+  },[progress,account,syncReady,accountLoading])
+  async function signedIn(token:string,who:Account) {
+    setSyncReady(false)
+    const stored=await api.load(token)
+    saveToken(token);sessionRef.current=token
+    setAccount(who)
+    setProgress(normalizeProgress(stored.progress) ?? initial)
+    setSyncStatus('Account progress loaded')
+    setSyncReady(true)
+  }
+  function signedOut() {
+    const token=sessionRef.current
+    if (token) void api.logout(token).catch(()=>{})
+    clearToken();sessionRef.current=null
+    setSyncReady(false);setAccount(null);setProgress(initial)
+    setSyncStatus('Signed out. Guest mode is active.')
+    setSyncReady(true)
+  }
   const completed = progress.completedLessons.length
   const accuracy = progress.attemptedAnswers ? Math.round(progress.correctAnswers / progress.attemptedAnswers * 100) : 0
   const challenge = challenges[progress.phishingIndex % challenges.length]
@@ -248,8 +303,9 @@ export default function App() {
       <div className="sidebar-bottom"><div className="sidebar-tip"><Sparkles size={18}/><strong>Practice makes progress.</strong><p>Learn to recognise risks in a safe, simulated environment.</p></div><div className="sidebar-foot"><span className="status-dot"/> Learning environment <span>v1.0</span></div></div>
     </aside>
     {mobileOpen && <button type="button" className="mobile-overlay" aria-label="Close navigation" onClick={() => setMobileOpen(false)}/>}
-    <div className="main-area"><header className="topbar"><button className="mobile-menu icon-button" aria-label="Open menu" aria-expanded={mobileOpen} onClick={() => setMobileOpen(true)}><Menu size={22}/></button><div className="breadcrumb">CYBERSHIELD <ChevronRight size={14}/> <span>{nav.find(n => n.id === page)?.label}</span></div><div className="top-right"><span className="live-pill"><span className="status-dot"/> TRAINING MODE</span><div className="avatar">CS</div></div></header>
+    <div className="main-area"><header className="topbar"><button className="mobile-menu icon-button" aria-label="Open menu" aria-expanded={mobileOpen} onClick={() => setMobileOpen(true)}><Menu size={22}/></button><div className="breadcrumb">CYBERSHIELD <ChevronRight size={14}/> <span>{nav.find(n => n.id === page)?.label}</span></div><div className="top-right"><span className="live-pill"><span className="status-dot"/> TRAINING MODE</span><button className="avatar account-avatar" aria-label="Open learning account" onClick={() => navigate('account')}>{account ? account.displayName.slice(0,2).toUpperCase() : 'CS'}</button></div></header>
       <main className="content">
+        {page === 'account' && <><PageIntro eyebrow="ACCOUNT & SYNC" title="Your learning account" description="Sign in to save progress to your account or continue learning locally as a guest."/><AccountPanel account={account} loading={accountLoading} syncStatus={syncStatus} onSignedIn={signedIn} onSignOut={signedOut}/></>}
         {page === 'overview' && <><div className="welcome-strip"><span><Sparkles size={16}/> Your cybersecurity learning workspace</span><span className="welcome-date">Learn with purpose. Practise with confidence.</span></div><section className="hero-panel" aria-label="Welcome to CyberShield"><div className="hero-content"><div className="hero-greeting"><span className="greeting-spark">✦</span> Welcome to Cyber Shield</div><div className="eyebrow"><Shield size={15}/> LEARN · PRACTISE · GROW</div><h1>Build confidence<br/>in <em>digital security.</em></h1><p>A practical space to understand online risks, develop essential security habits, and learn through guided exercises.</p><div className="hero-actions"><button className="primary-button" onClick={() => navigate(completed < lessons.length ? 'academy' : 'quiz')}>{completed < lessons.length ? 'Explore your lessons' : 'Test your knowledge'} <ArrowRight size={17}/></button><button className="hero-secondary" onClick={() => navigate('phishing')}><MailWarning size={17}/> Try a quick challenge</button></div><div className="hero-reassurance"><CheckCircle2 size={15}/> Beginner-friendly <span>·</span> Safe practice <span>·</span> Your own pace</div></div><div className="hero-art" aria-hidden="true"><div className="hero-illustration"><div className="illustration-halo"/><div className="illustration-window"><div className="illustration-window-top"><i/><i/><i/><span>YOUR DIGITAL SPACE</span></div><div className="illustration-window-body"><div className="illustration-avatar"><ShieldCheck size={58} strokeWidth={1.7}/></div><div className="illustration-check"><CheckCircle2 size={15}/> Growing your skills</div><div className="illustration-lines"><span/><span/><span/></div></div></div><div className="illustration-bubble illustration-bubble-one"><span className="illustration-bubble-icon"><Sparkles size={17}/></span><span><strong>Practical learning</strong><small>Build useful skills</small></span></div><div className="illustration-bubble illustration-bubble-two"><span className="illustration-bubble-icon mint"><Lock size={17}/></span><span><strong>Learn with clarity</strong><small>At your own pace</small></span></div><span className="illustration-star star-one">✳</span><span className="illustration-star star-two">✦</span></div></div></section><div className="quick-start"><div className="quick-start-heading"><span className="quick-kicker">YOUR NEXT STEP</span><strong>What would you like to do today?</strong></div><div className="quick-start-grid"><button className="quick-tile" onClick={() => navigate('academy')}><span className="quick-icon quick-violet"><BookOpen size={21}/></span><span><strong>Learn something new</strong><small>Structured learning modules</small></span><ArrowRight size={17}/></button><button className="quick-tile" onClick={() => navigate('phishing')}><span className="quick-icon quick-peach"><MailWarning size={21}/></span><span><strong>Spot a scam</strong><small>Practise with sample emails</small></span><ArrowRight size={17}/></button><button className="quick-tile" onClick={() => navigate('quiz')}><span className="quick-icon quick-mint"><ClipboardCheck size={21}/></span><span><strong>Test what you know</strong><small>Five quick knowledge questions</small></span><ArrowRight size={17}/></button></div></div>
           <div className="section-heading"><div><div className="eyebrow muted">YOUR LEARNING SNAPSHOT</div><h2>Overview</h2></div><span className="section-subtitle">Progress saved on this device</span></div>
           <div className="stats-grid"><Stat icon={BookOpen} title="Lessons completed" value={`${completed}/${lessons.length}`} detail="Learning academy"/><Stat icon={Target} title="Challenges attempted" value={String(progress.attemptedAnswers)} detail="Phishing practice"/><Stat icon={TrendingUp} title="Detection accuracy" value={`${accuracy}%`} detail="Based on your answers"/><Stat icon={Award} title="Learning milestones" value={String(Number(completed > 0) + Number(completed === lessons.length) + Number(progress.correctAnswers >= 3) + Number((progress.quizBest || 0) === quizQuestions.length))} detail="Up to 4 achievements"/></div>
