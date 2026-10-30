@@ -14,7 +14,7 @@ export async function request<T>(path: string, method = 'GET', data?: unknown, t
   }) } catch { throw new Error('Cannot reach the Cyber Shield backend. Check that Spring Boot is running and VITE_API_URL points to its public /api endpoint.') }
   if (!response.ok) {
     const error = await response.json().catch(() => ({}))
-    throw new Error(typeof error.error === 'string' ? error.error : 'Request failed (' + response.status + ')')
+    throw new Error(typeof error.error === 'string' ? error.error : `${method} ${BASE + path} failed (${response.status})`)
   }
   if (response.status === 204) return undefined as T
   const type = response.headers.get('content-type') || ''
