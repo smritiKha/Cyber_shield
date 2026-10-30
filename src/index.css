@@ -493,3 +493,8 @@ input:not([type="radio"]):focus{border-color:#31867a;box-shadow:0 0 0 3px #31867
 @media(max-width:680px){.roadmap-summary{padding:21px;gap:15px}.roadmap-summary h2,.roadmap-section-heading h2{font-size:20px}.roadmap-summary-number{min-width:80px;width:80px;height:80px;border-width:6px;font-size:25px}.roadmap-summary-number>span{font-size:13px;margin-top:-5px}.roadmap-summary-number>small{font-size:7px}.roadmap-section-heading{align-items:flex-start;flex-direction:column;gap:8px}.roadmap-step{grid-template-columns:43px minmax(0,1fr)}.roadmap-step-node{width:34px;height:34px;font-size:10px}.roadmap-step-rail:after{top:38px}.roadmap-step-card{padding:17px}.roadmap-step-top{align-items:flex-start;flex-wrap:wrap}.roadmap-finish{padding:20px}}
 @media(max-width:430px){.roadmap-summary-number{display:none}}
 @media(prefers-reduced-motion:reduce){.roadmap-summary-track>span{transition:none}}
+
+/* Accessible progress restoration */
+.visually-hidden-input{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.restore-message{font-size:12px;color:#236a57;margin:15px 0 0;line-height:1.6}
+.report-actions button:focus-visible,.roadmap-step-card button:focus-visible{outline:3px solid #1f7869;outline-offset:3px}
