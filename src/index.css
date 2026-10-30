@@ -352,3 +352,15 @@ input:not([type="radio"]):focus{border-color:#31867a;box-shadow:0 0 0 3px #31867
 .academy-completed{display:inline-flex;align-items:center;gap:9px;padding:12px 16px;background:#e9f6ef;color:#26735b;border-radius:9px;font-size:13px;font-weight:700}
 @media(max-width:650px){.academy-summary{align-items:stretch;flex-direction:column;padding:18px;gap:15px}.academy-track{max-width:none;width:100%}.academy-detail{padding:21px}.academy-step{padding:15px;gap:12px}}
 @media(prefers-reduced-motion:reduce){.academy-track span{transition:none}}
+
+/* Phishing practice: staged learning and round review */
+.phishing-level{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:5px 0 12px;color:#748783;font-size:11px}
+.phishing-level span:first-child{color:#25756a;background:#e7f2ed;border-radius:6px;padding:7px 10px;font-size:10px;font-weight:800;letter-spacing:.07em}
+.phishing-track{height:7px;border-radius:20px;background:#e4ece7;overflow:hidden;margin-bottom:21px}
+.phishing-track>span{display:block;height:100%;border-radius:20px;background:#287b6d;transition:width .25s}
+.phishing-finish{border-top:1px solid #bddbcb;margin-top:18px;padding-top:19px}
+.phishing-finish>strong{font-size:15px;color:#285d4f}
+.phishing-finish>p{font-size:12px;line-height:1.7;color:#46695e}
+.phishing-finish .primary-button{margin-top:4px}
+@media(max-width:600px){.phishing-level{align-items:flex-start;flex-direction:column}}
+@media(prefers-reduced-motion:reduce){.phishing-track>span{transition:none}}
