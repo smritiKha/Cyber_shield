@@ -1,122 +1,93 @@
-import { useState } from 'react'
-import heroImg from './assets/hero.png'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import './App.css'
+import { useEffect, useState } from 'react'
+import { Activity, ArrowRight, Award, BookOpen, CheckCircle2, ChevronRight, CircleHelp, Eye, Fingerprint, GraduationCap, Home, KeyRound, Lock, MailWarning, Menu, RotateCcw, Shield, ShieldCheck, Sparkles, Target, TrendingUp, X, XCircle } from 'lucide-react'
 
-function App() {
-  const [count, setCount] = useState(0)
-
-  return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.tsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
-
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+type Page = 'overview' | 'phishing' | 'password' | 'academy' | 'achievements'
+type Progress = { completedLessons: string[]; correctAnswers: number; attemptedAnswers: number; phishingIndex: number }
+const initial: Progress = { completedLessons: [], correctAnswers: 0, attemptedAnswers: 0, phishingIndex: 0 }
+const challenges = [
+  { from: 'Account Services <security@account-alert.example>', subject: 'Immediate verification required', body: 'Your account will be suspended in 30 minutes. Click the link below and enter your password to restore access.', action: 'Verify now: https://account-verify.example/login', phishing: true, clues: ['Urgent deadline intended to create panic', 'Requests your password through a link', 'Unfamiliar sender and destination'] },
+  { from: 'Campus Library <library@university.example>', subject: 'Your library orientation schedule', body: 'Hello, your library orientation is scheduled for Tuesday at 10:00. Please check the official student portal by opening it from your saved bookmark.', action: 'No link or personal information requested.', phishing: false, clues: ['No pressure or threatening language', 'Does not ask for sensitive information', 'Encourages use of an independently accessed portal'] },
+  { from: 'Delivery Team <parcel@delivery-notice.example>', subject: 'Your parcel is on hold', body: 'A package is waiting. To avoid return, pay a small redelivery fee and confirm your card details today.', action: 'Pay fee: https://parcel-fee.example', phishing: true, clues: ['Unexpected payment request', 'Requests card information', 'Unverified delivery sender'] },
+  { from: 'IT Training <training@learning.example>', subject: 'Security awareness workshop', body: 'Thanks for registering. The workshop begins at 2 PM. You can access your session from the learning portal you already use.', action: 'Reminder only — no sign-in link included.', phishing: false, clues: ['Expected educational reminder', 'No request for credentials or payment', 'Directs you to your known portal'] },
+]
+const lessons = [
+  { id: 'phishing', category: 'Threat awareness', title: 'Spotting phishing attempts', minutes: 8, desc: 'Learn the common signs of deceptive messages and how to verify requests safely.' },
+  { id: 'passwords', category: 'Identity & access', title: 'Stronger authentication', minutes: 6, desc: 'Explore passphrases, password managers, and multi-factor authentication.' },
+  { id: 'privacy', category: 'Digital privacy', title: 'Protecting personal data', minutes: 10, desc: 'Understand data minimisation, privacy settings, and responsible sharing.' },
+  { id: 'networks', category: 'Network fundamentals', title: 'Safer connections', minutes: 9, desc: 'Understand HTTPS, software updates, and risks on shared networks.' },
+]
+const nav: { id: Page; label: string; icon: typeof Home }[] = [
+  { id: 'overview', label: 'Overview', icon: Home }, { id: 'phishing', label: 'Phishing lab', icon: MailWarning },
+  { id: 'password', label: 'Password lab', icon: KeyRound }, { id: 'academy', label: 'Learning academy', icon: BookOpen },
+  { id: 'achievements', label: 'Achievements', icon: Award },
+]
+function loadProgress(): Progress { try { const value = JSON.parse(localStorage.getItem('cybershield-progress-v1') || 'null'); return value && Array.isArray(value.completedLessons) ? { ...initial, ...value } : initial } catch { return initial } }
+function downloadReport(progress: Progress) {
+  const report = {
+    project: 'CyberShield — Learn. Detect. Defend.',
+    generatedAt: new Date().toISOString(),
+    completedLessons: progress.completedLessons,
+    lessonsAvailable: lessons.length,
+    phishingAttempts: progress.attemptedAnswers,
+    correctPhishingAnswers: progress.correctAnswers,
+    accuracyPercent: progress.attemptedAnswers ? Math.round(progress.correctAnswers / progress.attemptedAnswers * 100) : 0,
+    note: 'Self-directed educational practice; not a professional certification or security assessment.',
+  }
+  const blob = new Blob([JSON.stringify(report, null, 2)], { type: 'application/json' })
+  const url = URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.href = url
+  link.download = 'cybershield-learning-report.json'
+  link.click()
+  URL.revokeObjectURL(url)
 }
-
-export default App
+function getPasswordFeedback(password: string) {
+  if (!password) return { score: 0, label: 'Not evaluated', hints: ['Try a fictional example passphrase — never enter a real password.'] }
+  let score = 0
+  if (password.length >= 12) score++
+  if (password.length >= 16) score++
+  if (/[a-z]/.test(password) && /[A-Z]/.test(password)) score++
+  if (/\d/.test(password) || /[^a-zA-Z]/.test(password)) score++
+  if (/password|123456|qwerty|admin|letmein/i.test(password)) score = Math.min(score, 1)
+  const hints = [password.length < 16 ? 'Longer passphrases are generally easier to remember and harder to guess.' : 'Good length for a fictional example.', 'Use a unique password for each account and enable multi-factor authentication.', 'This simple demonstration is not a real-world password security audit.']
+  return { score, label: ['Very weak', 'Weak', 'Developing', 'Good example', 'Strong example'][score], hints }
+}
+export default function App() {
+  const [page, setPage] = useState<Page>('overview')
+  const [progress, setProgress] = useState<Progress>(loadProgress)
+  const [answer, setAnswer] = useState<boolean | null>(null)
+  const [sample, setSample] = useState('')
+  const [mobileOpen, setMobileOpen] = useState(false)
+  useEffect(() => { localStorage.setItem('cybershield-progress-v1', JSON.stringify(progress)) }, [progress])
+  const completed = progress.completedLessons.length
+  const accuracy = progress.attemptedAnswers ? Math.round(progress.correctAnswers / progress.attemptedAnswers * 100) : 0
+  const challenge = challenges[progress.phishingIndex % challenges.length]
+  const password = getPasswordFeedback(sample)
+  function navigate(next: Page) { setPage(next); setMobileOpen(false) }
+  function submitAnswer(value: boolean) { if (answer !== null) return; setAnswer(value); setProgress(p => ({ ...p, attemptedAnswers: p.attemptedAnswers + 1, correctAnswers: p.correctAnswers + Number(value === challenge.phishing) })) }
+  function nextChallenge() { setAnswer(null); setProgress(p => ({ ...p, phishingIndex: p.phishingIndex + 1 })) }
+  function completeLesson(id: string) { setProgress(p => ({ ...p, completedLessons: p.completedLessons.includes(id) ? p.completedLessons : [...p.completedLessons, id] })) }
+  return <div className="app-shell">
+    <aside className={`sidebar ${mobileOpen ? 'sidebar-open' : ''}`}>
+      <div className="brand"><div className="brand-icon"><ShieldCheck size={24}/></div><div><strong>CYBER<span>SHIELD</span></strong><small>LEARN · DETECT · DEFEND</small></div><button className="mobile-close icon-button" onClick={() => setMobileOpen(false)} aria-label="Close menu"><X size={20}/></button></div>
+      <div className="sidebar-caption">WORKSPACE</div><nav aria-label="Main navigation">{nav.map(item => { const Icon = item.icon; return <button key={item.id} className={`nav-item ${page === item.id ? 'active' : ''}`} onClick={() => navigate(item.id)}><Icon size={18}/><span>{item.label}</span>{page === item.id && <ChevronRight size={16} className="nav-arrow"/>}</button> })}</nav>
+      <div className="sidebar-bottom"><div className="sidebar-tip"><Sparkles size={18}/><strong>Practice makes progress.</strong><p>Learn to recognise risks in a safe, simulated environment.</p></div><div className="sidebar-foot"><span className="status-dot"/> Learning environment <span>v1.0</span></div></div>
+    </aside>
+    <div className="main-area"><header className="topbar"><button className="mobile-menu icon-button" aria-label="Open menu" onClick={() => setMobileOpen(true)}><Menu size={22}/></button><div className="breadcrumb">CYBERSHIELD <ChevronRight size={14}/> <span>{nav.find(n => n.id === page)?.label}</span></div><div className="top-right"><span className="live-pill"><span className="status-dot"/> TRAINING MODE</span><div className="avatar">CS</div></div></header>
+      <main className="content">
+        {page === 'overview' && <><div className="hero-panel"><div className="hero-content"><div className="eyebrow"><Shield size={15}/> YOUR CYBERSECURITY LEARNING HUB</div><h1>Build your digital<br/><em>defence skills.</em></h1><p>Understand online threats, practise smarter security habits, and track your growth — one challenge at a time.</p><button className="primary-button" onClick={() => navigate('phishing')}>Start a challenge <ArrowRight size={17}/></button></div><div className="hero-art" aria-hidden="true"><div className="orbit orbit-one"/><div className="orbit orbit-two"/><div className="orbit orbit-three"/><div className="shield-glow"><ShieldCheck size={106} strokeWidth={1.25}/></div></div></div>
+          <div className="section-heading"><div><div className="eyebrow muted">YOUR LEARNING SNAPSHOT</div><h2>Overview</h2></div><span className="section-subtitle">Progress saved on this device</span></div>
+          <div className="stats-grid"><Stat icon={BookOpen} title="Lessons completed" value={`${completed}/${lessons.length}`} detail="Learning academy"/><Stat icon={Target} title="Challenges attempted" value={String(progress.attemptedAnswers)} detail="Phishing practice"/><Stat icon={TrendingUp} title="Detection accuracy" value={`${accuracy}%`} detail="Based on your answers"/><Stat icon={Award} title="Learning milestones" value={String(Number(completed > 0) + Number(completed === lessons.length) + Number(progress.correctAnswers >= 3))} detail="Up to 3 achievements"/></div>
+          <div className="two-column"><div className="panel"><div className="panel-title"><h3>Explore your labs</h3><span>HANDS-ON LEARNING</span></div><button className="lab-row" onClick={() => navigate('phishing')}><div className="lab-icon purple"><MailWarning size={22}/></div><div><strong>Phishing detection lab</strong><p>Analyse realistic fictional messages</p></div><ArrowRight size={18}/></button><button className="lab-row" onClick={() => navigate('password')}><div className="lab-icon cyan"><Lock size={22}/></div><div><strong>Password security lab</strong><p>Explore the principles of strong credentials</p></div><ArrowRight size={18}/></button><button className="lab-row" onClick={() => navigate('academy')}><div className="lab-icon blue"><GraduationCap size={22}/></div><div><strong>Learning academy</strong><p>Build a foundation in digital security</p></div><ArrowRight size={18}/></button></div><div className="panel progress-panel"><div className="panel-title"><h3>Your learning journey</h3><Activity size={18}/></div><div className="progress-ring" style={{ '--pct': `${completed / lessons.length * 100}%` } as React.CSSProperties}><div><strong>{Math.round(completed / lessons.length * 100)}%</strong><small>COMPLETE</small></div></div><div className="progress-description">{completed === 0 ? 'Your learning journey starts here.' : `You've completed ${completed} of ${lessons.length} lessons.`}</div><button className="text-button" onClick={() => navigate('academy')}>Continue learning <ArrowRight size={16}/></button></div></div>
+        </>}
+        {page === 'phishing' && <><PageIntro eyebrow="INTERACTIVE SIMULATION" title="Phishing detection lab" description="Examine fictional messages and decide whether each one shows signs of phishing. No real accounts, links, or personal information are involved."/><div className="lab-layout"><div className="panel challenge-panel"><div className="panel-title"><h3>Message analysis</h3><span>SCENARIO {progress.phishingIndex % challenges.length + 1} OF {challenges.length}</span></div><div className="email-window"><div className="email-header"><div className="email-avatar"><MailWarning size={22}/></div><div><strong>{challenge.subject}</strong><p>From: {challenge.from}</p></div></div><div className="email-body"><p>{challenge.body}</p><div className="fake-link">{challenge.action}</div></div></div><h3 className="question-title">Does this message show signs of phishing?</h3><div className="answer-actions"><button disabled={answer !== null} className="danger-button" onClick={() => submitAnswer(true)}><XCircle size={18}/> Yes, suspicious</button><button disabled={answer !== null} className="safe-button" onClick={() => submitAnswer(false)}><CheckCircle2 size={18}/> No obvious signs</button></div>{answer !== null && <div className={`feedback ${answer === challenge.phishing ? 'correct' : 'incorrect'}`}><strong>{answer === challenge.phishing ? 'Correct assessment!' : 'Not quite — keep practising.'}</strong><p>This example is {challenge.phishing ? 'a phishing attempt' : 'a legitimate-style training message'}.</p><ul>{challenge.clues.map(clue => <li key={clue}>{clue}</li>)}</ul><button className="primary-button" onClick={nextChallenge}>Next scenario <ArrowRight size={16}/></button></div>}</div><div className="panel side-note"><div className="note-icon"><Eye size={24}/></div><h3>Look beyond appearances</h3><p>Even polished messages can be deceptive. Verify unexpected requests through official channels you open independently.</p><div className="note-rule"/><div className="small-metric"><span>Attempts</span><strong>{progress.attemptedAnswers}</strong></div><div className="small-metric"><span>Correct answers</span><strong>{progress.correctAnswers}</strong></div><div className="small-metric"><span>Accuracy</span><strong>{accuracy}%</strong></div><p className="note-disclaimer">All sender addresses and links shown here are fictional examples and are not clickable.</p></div></div></>}
+        {page === 'password' && <><PageIntro eyebrow="IDENTITY & ACCESS" title="Password security lab" description="Explore how length and complexity affect a simple educational password-strength estimate. Use made-up examples only."/><div className="lab-layout"><div className="panel"><div className="panel-title"><h3>Try a fictional passphrase</h3><Fingerprint size={21}/></div><label className="field-label" htmlFor="sample-password">Example password (never enter a real password)</label><input id="sample-password" type="text" autoComplete="off" spellCheck={false} value={sample} onChange={e => setSample(e.target.value)} placeholder="e.g. CloudyOrangesDance42!"/><div className="meter-label"><span>Illustrative strength</span><strong>{password.label}</strong></div><div className="strength-bars">{[1,2,3,4].map(n => <span key={n} className={n <= password.score ? `filled score-${password.score}` : ''}/>)}</div><div className="tips-list">{password.hints.map(hint => <div key={hint}><CheckCircle2 size={17}/><span>{hint}</span></div>)}</div><button className="secondary-button" onClick={() => setSample('')}><RotateCcw size={16}/> Clear example</button></div><div className="panel side-note"><div className="note-icon"><Lock size={24}/></div><h3>Better account protection</h3><p>Long, unique passwords and a reputable password manager help protect accounts. Multi-factor authentication adds another important layer.</p><div className="note-rule"/><p className="note-disclaimer">Privacy note: this demo evaluates only what you type locally. It does not send or store the sample. Its rating is educational, not a security guarantee.</p></div></div></>}
+        {page === 'academy' && <><PageIntro eyebrow="BUILD YOUR FOUNDATIONS" title="Learning academy" description="Four concise introductory modules covering essential security concepts. Mark a module complete after reviewing its summary."/><div className="lessons-grid">{lessons.map((lesson, index) => <article className="panel lesson-card" key={lesson.id}><div className="lesson-top"><div className="lesson-number">0{index + 1}</div>{progress.completedLessons.includes(lesson.id) && <span className="completed-label"><CheckCircle2 size={15}/> Completed</span>}</div><span className="lesson-category">{lesson.category} · {lesson.minutes} min</span><h3>{lesson.title}</h3><p>{lesson.desc}</p><div className="lesson-details"><strong>Key takeaway</strong><p>{[ 'Check the full sender address, pause before acting on urgent requests, and verify requests through a known official channel. Do not enter credentials from unexpected messages.', 'Create long, unique passphrases for every account, use a reputable password manager, and enable multi-factor authentication. Never share verification codes.', 'Apply data minimisation: share only what is needed, review app permissions, and consider the audience and long-term consequences of public posts.', 'Update devices and browsers, verify website addresses, and remember that HTTPS encrypts a connection but does not prove that a website is trustworthy.' ][index]}</p></div><button className="secondary-button" onClick={() => completeLesson(lesson.id)} disabled={progress.completedLessons.includes(lesson.id)}>{progress.completedLessons.includes(lesson.id) ? 'Lesson completed' : 'Mark lesson complete'} <CheckCircle2 size={16}/></button></article>)}</div></>}
+        {page === 'achievements' && <><PageIntro eyebrow="YOUR PROGRESS" title="Achievements" description="Celebrate learning milestones as you explore CyberShield. These are local educational badges, not professional certifications."/><div className="achievements-grid">{[{name:'First step',desc:'Complete your first lesson',unlocked:completed >= 1,icon:BookOpen},{name:'Knowledge builder',desc:'Complete all four lessons',unlocked:completed === lessons.length,icon:GraduationCap},{name:'Threat spotter',desc:'Answer three phishing scenarios correctly',unlocked:progress.correctAnswers >= 3,icon:ShieldCheck}].map(a => { const Icon = a.icon; return <div className={`panel achievement ${a.unlocked ? 'unlocked' : ''}`} key={a.name}><div className="achievement-icon"><Icon size={30}/></div><h3>{a.name}</h3><p>{a.desc}</p><span>{a.unlocked ? 'UNLOCKED' : 'LOCKED'}</span></div> })}</div><div className="panel reset-panel"><div><h3>Learning report</h3><p>Download a JSON summary of your completed lessons and practice results.</p></div><button className="secondary-button" onClick={() => downloadReport(progress)}><Award size={16}/> Export report</button></div><div className="panel reset-panel"><div><h3>Start again</h3><p>Clear your locally saved learning progress and repeat the activities.</p></div><button className="secondary-button" onClick={() => { if (window.confirm('Reset all CyberShield learning progress on this device?')) { setProgress(initial); setAnswer(null); setSample('') } }}><RotateCcw size={16}/> Reset progress</button></div></>}
+        <footer className="footer"><span><Shield size={14}/> CyberShield · Educational prototype</span><span><CircleHelp size={14}/> Safe, fictional simulations only</span></footer>
+      </main>
+    </div>
+  </div>
+}
+function Stat({icon: Icon,title,value,detail}: {icon: typeof Home;title:string;value:string;detail:string}) { return <div className="stat-card"><div className="stat-icon"><Icon size={20}/></div><span>{title}</span><strong>{value}</strong><small>{detail}</small></div> }
+function PageIntro({eyebrow,title,description}: {eyebrow:string;title:string;description:string}) { return <div className="page-intro"><div className="eyebrow"><Sparkles size={15}/>{eyebrow}</div><h1>{title}</h1><p>{description}</p></div> }
