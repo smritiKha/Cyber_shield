@@ -139,3 +139,73 @@ The backend provides BCrypt-hashed passwords, seven-day revocable bearer session
 - Phishing lab: 16 fictional practice scenarios.
 - Knowledge quiz: 27 questions across phishing, authentication, privacy and network safety, with beginner, intermediate and advanced levels.
 - Signed-in progress sync: account data is loaded when signing in and saved after changes. Export guest progress before signing in if you want to preserve it. The system does not yet merge simultaneous edits across devices.
+
+## Role-based learning platform and PostgreSQL
+
+The **Learning platform** sidebar page now contains distinct views:
+
+- **Administrator:** content creation/editing/publishing/deletion, quiz and simulation question editing through JSON, aggregate learner statistics, assessment difficulty summaries, and CSV export. The backend checks the `ADMIN` role on every administrative endpoint.
+- **Student:** published course enrollment, course completion records, quiz/phishing/privacy challenge submissions, score history, activity streaks, and suggested next steps. The backend checks the `STUDENT` role and only returns that student's records.
+- **Guest:** browse published content; sign in to enroll or submit assessments.
+
+The database seeds introductory courses, lessons, a quiz, phishing examples, and a privacy/URL challenge on first launch. Administrators can edit or unpublish these entries through the UI. Existing React academy lessons and labs remain available as additional built-in learning activities.
+
+### Run PostgreSQL locally
+
+Install Docker, Java 21, Maven and Node.js. From the repository root:
+
+```bash
+# Create a local .env file (ignored by Git) containing:
+# POSTGRES_PASSWORD=<your strong local database password>
+docker compose up -d postgres
+```
+
+Start Spring Boot from the `backend` folder with the PostgreSQL profile:
+
+```bash
+export SPRING_PROFILES_ACTIVE=postgres
+export DATABASE_URL=jdbc:postgresql://localhost:5432/cybershield
+export DATABASE_USERNAME=cybershield
+export DATABASE_PASSWORD='<same password as POSTGRES_PASSWORD>'
+export ADMIN_EMAIL='admin@example.com'
+export ADMIN_PASSWORD='<a unique password of at least 16 characters>'
+mvn spring-boot:run
+```
+
+**Important:** Set the environment variables in your own terminal; the angle-bracket examples are placeholders, not credentials. Never commit credentials. Admin creation occurs only when both `ADMIN_EMAIL` and `ADMIN_PASSWORD` are set and the specified email does not exist. Public signup always creates a **STUDENT** account. If the admin email already belongs to a student, it is **not** automatically promoted.
+
+In another terminal, from the repository root:
+
+```bash
+npm ci
+npm run dev
+```
+
+Open the Vite address, choose **My account**, and sign in with the admin credentials to access **Learning platform**. Create a different student account through normal registration to see the student dashboard.
+
+### Assessment content JSON
+
+For `QUIZ`, `PHISHING`, and `CHALLENGE`, use:
+
+```json
+{
+  "questions": [
+    {
+      "question": "Which choice is safest?",
+      "options": ["Verify independently", "Share a password"],
+      "correct": 0,
+      "explanation": "Always verify unexpected requests through trusted channels."
+    }
+  ]
+}
+```
+
+Correct answers are **not included in the public catalog**. The backend scores student submissions and saves attempts to the database. Courses and lessons use `{"text":"Lesson content"}`.
+
+### Scope and limitations
+
+- The database-backed platform is functional for local academic demonstration, with backend-enforced student/admin roles and integration tests. It has **not** been verified in a deployed production PostgreSQL environment.
+- Built-in academy lessons and quizzes remain defined in React, separate from the new database-managed catalog.
+- The dashboard's course completion record is **self-reported**, not a verified certificate or externally accredited qualification.
+- Student activity streaks count days with saved database assessment attempts in UTC.
+- The prototype does not yet support production-grade email verification, password reset, rate limiting, conflict-free concurrent edits, enrollment prerequisites, full lesson-level completion tracking, or audited administrative actions.
