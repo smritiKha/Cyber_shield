@@ -397,3 +397,40 @@ input:not([type="radio"]):focus{border-color:#31867a;box-shadow:0 0 0 3px #31867
 .quiz-result-meter span{display:block;height:100%;background:#2d876d;border-radius:20px}
 .quiz-result-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:20px}
 @media(max-width:600px){.quiz-config{grid-template-columns:1fr;padding:17px;gap:13px}.quiz-result-expanded>strong{font-size:19px}}
+
+/* Achievements dashboard and report */
+.achievement-overview{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:20px}
+.achievement-overview-card{background:#fff;border:1px solid #e0e8e3;border-radius:12px;padding:21px}
+.achievement-overview-card>span{font-size:10px;letter-spacing:.06em;font-weight:800;color:#738780}
+.achievement-overview-card>strong{display:block;font-size:32px;letter-spacing:-.055em;color:#1e6258;margin:12px 0 5px}
+.achievement-overview-card>strong small{font-size:17px;color:#7e938a}
+.achievement-overview-card>p{margin:0;font-size:11px;color:#70837c}
+.achievement-progress,.topic-progress{margin-bottom:20px}
+.achievement-milestones{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px;margin-top:20px}
+.achievement-milestone{display:flex;align-items:flex-start;gap:12px;padding:18px;border:1px solid #e3ebe6;border-radius:10px;background:#fcfdfc}
+.milestone-status{display:grid;place-items:center;width:36px;height:36px;flex-shrink:0;border-radius:10px;background:#edf0ed;color:#8b9b92}
+.milestone-status.done{background:#e0f2e9;color:#257b60}
+.milestone-copy{flex:1;min-width:0}.milestone-copy strong{font-size:13px;color:#2b4840}.milestone-copy p{font-size:11px;color:#74857f;margin:6px 0 13px;line-height:1.5}
+.milestone-track,.topic-progress-bar{height:7px;background:#e4ece6;border-radius:20px;overflow:hidden}
+.milestone-track span,.topic-progress-bar span{display:block;height:100%;background:#2c8470;border-radius:20px}
+.milestone-count{font-size:11px;font-weight:700;color:#668076}
+.topic-intro{font-size:12px;line-height:1.7;color:#72837e;margin:10px 0 22px}
+.topic-progress-list{display:grid;gap:19px}
+.topic-progress-row{padding:16px 18px;border:1px solid #e4ebe6;border-radius:10px}
+.topic-progress-heading,.topic-progress-details{display:flex;justify-content:space-between;align-items:center;gap:15px}
+.topic-progress-heading strong{font-size:13px;color:#2a4940}
+.topic-progress-heading>span,.topic-progress-details>span{font-size:11px;color:#72877e}
+.topic-progress-details{margin-top:14px}
+.topic-progress-bar{flex:1}
+.topic-progress-details>span{min-width:115px;text-align:right}
+.report-preview{display:flex;justify-content:space-between;align-items:center;gap:28px;margin-bottom:20px;background:linear-gradient(110deg,#eff7f1,#f9fbf8);border-color:#d7e8dd;padding:30px}
+.report-preview>div:first-child{max-width:650px}
+.report-kicker{font-size:10px;font-weight:800;letter-spacing:.1em;color:#307b69}
+.report-preview h3{font-size:23px;letter-spacing:-.035em;color:#294a40;margin:12px 0}
+.report-preview p{font-size:12px;line-height:1.8;color:#657e73}
+.report-actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:22px}
+.report-preview-mark{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;min-width:178px;min-height:194px;background:#fff;border:1px solid #d8e9df;border-radius:12px;color:#267462;box-shadow:0 10px 22px #366d5010}
+.report-preview-mark>span,.report-preview-mark>small{font-size:9px;font-weight:800;letter-spacing:.08em}
+.report-preview-mark>strong{font-size:30px;letter-spacing:-.04em}
+@media(max-width:1100px){.achievement-overview{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:680px){.achievement-overview{gap:10px}.achievement-overview-card{padding:16px}.achievement-overview-card>strong{font-size:27px}.achievement-milestones{grid-template-columns:1fr}.report-preview{padding:20px;align-items:stretch;flex-direction:column}.report-preview-mark{display:none}.topic-progress-heading{align-items:flex-start;flex-direction:column;gap:5px}.topic-progress-details>span{min-width:95px}}
