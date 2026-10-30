@@ -70,3 +70,45 @@ A sensible next phase is a Spring Boot REST API, PostgreSQL user progress storag
 ## Academic presentation
 
 When presenting the project, describe the problem (cybersecurity awareness), target audience (beginner learners), implemented features, architecture, design decisions, limitations, and planned extensions. Avoid claiming it detects real threats or uses AI.
+
+## Complete feature guide (October 2026)
+
+CyberShield is a **client-side educational prototype**, not a production security scanner or certification platform.
+
+| Section | What you can do |
+| --- | --- |
+| Overview | See learning statistics and shortcuts to practical activities |
+| Learning roadmap | Follow six milestones, including four guided modules, phishing practice, and a beginner knowledge check |
+| Learning academy | Read four guided lessons, answer a knowledge check, and mark each module complete |
+| Phishing lab | Evaluate eight **fictional** message examples, review clues, and see round accuracy |
+| Password lab | Compare fictional example passwords and learn about unique credentials, managers, and MFA |
+| Knowledge quiz | Select topic and difficulty from a 15-question bank, submit answers, and review explanations |
+| Achievements | See milestones, topic performance, recent quiz activity, and personalized next steps |
+| Reports | Download a printable HTML report or export/restore a JSON progress backup |
+
+### Progress and privacy
+
+- All learning progress is stored **locally in the current browser** using the `cybershield-progress-v1` localStorage key. There is no account system or backend synchronization.
+- Export JSON from **Achievements** to retain a backup before clearing browser storage or switching devices. Use **Restore exported JSON** to load it on another device. Restoration replaces the current device's progress after confirmation.
+- The export contains completed lessons, phishing scores, and quiz history. Treat it as personal learning data; avoid publishing it.
+- The password lab is illustrative and runs locally. **Never enter real passwords**. Example passwords are public demonstrations and must not be reused.
+- The phishing lab uses fictional `.example` domains; it never asks users to visit suspicious links.
+- Topic statistics reflect recorded quiz answers. The quiz history stores a maximum of 100 records, including topic-level breakdown entries. The beginner all-topic best score remains out of five.
+- The printable report is a standalone HTML file. Open it in a browser and use **Print → Save as PDF**.
+
+### Quality checks
+
+```bash
+npm ci
+npm run build
+npm run dev
+```
+
+The GitHub Actions validation workflow builds the project on pushes and pull requests. Passing a build confirms compilation, not a comprehensive browser or accessibility audit.
+
+### Known limitations
+
+- No authentication, database, cloud sync, certificates, or real threat detection.
+- Progress is tied to the browser unless exported and restored.
+- Lesson and quiz content is introductory, not a substitute for professional security training.
+- The strength indicator is a simple educational heuristic and cannot reliably determine whether a password is compromised.
