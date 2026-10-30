@@ -112,3 +112,30 @@ The GitHub Actions validation workflow builds the project on pushes and pull req
 - Progress is tied to the browser unless exported and restored.
 - Lesson and quiz content is introductory, not a substitute for professional security training.
 - The strength indicator is a simple educational heuristic and cannot reliably determine whether a password is compromised.
+
+## Full-stack extension: Spring Boot accounts and saved progress
+
+The project now includes a Spring Boot backend in [backend/](backend/README.md). To use accounts and cloud-saved learning progress, run **both** processes:
+
+```bash
+# Terminal 1
+cd backend
+mvn spring-boot:run
+
+# Terminal 2, repository root
+npm ci
+npm run dev
+```
+
+Requirements: Java 21, Maven 3.9+, Node.js 24+, npm. The development API runs on port 8080; Vite proxies `/api` to it. Without the backend, guest lessons, quizzes, and local progress still work, but registration and cloud synchronization will not.
+
+The backend provides BCrypt-hashed passwords, seven-day revocable bearer sessions, database-backed learning progress, and endpoints for signup/login/logout/account details. Local development uses a persistent H2 database; PostgreSQL can be configured for deployment using environment variables. The frontend session token is stored in browser sessionStorage.
+
+**Important:** This is a functional educational full-stack prototype, **not a production-hardened authentication service**. See the backend README for the remaining production safeguards and deployment configuration. Avoid deploying public registration without abuse protection and monitoring.
+
+### Expanded security education
+
+- URL safety: offline inspection of fictional URL examples, including HTTPS, lookalike subdomains, user information in URLs, and shortened links. It does **not** contact or verify destinations.
+- Phishing lab: 16 fictional practice scenarios.
+- Knowledge quiz: 27 questions across phishing, authentication, privacy and network safety, with beginner, intermediate and advanced levels.
+- Signed-in progress sync: account data is loaded when signing in and saved after changes. Export guest progress before signing in if you want to preserve it. The system does not yet merge simultaneous edits across devices.
