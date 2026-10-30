@@ -6,16 +6,19 @@ export const readToken = () => sessionStorage.getItem(TOKEN_KEY)
 export const saveToken = (token: string) => sessionStorage.setItem(TOKEN_KEY, token)
 export const clearToken = () => sessionStorage.removeItem(TOKEN_KEY)
 export async function request<T>(path: string, method = 'GET', data?: unknown, token?: string): Promise<T> {
-  const response = await fetch(BASE + path, {
+  let response: Response
+  try { response = await fetch(BASE + path, {
     method, headers: { ...(data === undefined ? {} : {'Content-Type':'application/json'}), ...(token ? {Authorization: 'Bearer ' + token} : {}) },
     body: data === undefined ? undefined : JSON.stringify(data),
     cache:'no-store'
-  })
+  }) } catch { throw new Error('Cannot reach the Cyber Shield backend. Check that Spring Boot is running and VITE_API_URL points to its public /api endpoint.') }
   if (!response.ok) {
     const error = await response.json().catch(() => ({}))
     throw new Error(typeof error.error === 'string' ? error.error : 'Request failed (' + response.status + ')')
   }
   if (response.status === 204) return undefined as T
+  const type = response.headers.get('content-type') || ''
+  if (!type.includes('application/json')) throw new Error('The API returned a web page instead of JSON. Check VITE_API_URL and the backend deployment.')
   return response.json() as Promise<T>
 }
 export const api = {
