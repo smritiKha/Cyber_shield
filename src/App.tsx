@@ -225,10 +225,10 @@ export default function App() {
       const stored=await api.load(token)
       setProgress(normalizeProgress(stored.progress) ?? initial)
       setSyncStatus('Account progress loaded')
+      setSyncReady(true)
     } catch (error) {
       setSyncStatus('Signed in successfully. Learning progress could not be loaded: '+(error instanceof Error?error.message:'Server unavailable'))
     }
-    setSyncReady(true)
   }
   function signedOut() {
     const token=sessionRef.current
