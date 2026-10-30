@@ -6,6 +6,6 @@ import org.springframework.web.servlet.config.annotation.*;
 public class WebConfig implements WebMvcConfigurer {
  @Value("${app.allowed-origin}") private String origin;
  @Override public void addCorsMappings(CorsRegistry registry){
-  registry.addMapping("/api/**").allowedOrigins(origin).allowedMethods("GET","POST","PUT","OPTIONS").allowedHeaders("Authorization","Content-Type").maxAge(3600);
+  registry.addMapping("/api/**").allowedOrigins(origin).allowedMethods("GET","POST","PUT","DELETE","OPTIONS").allowedHeaders("Authorization","Content-Type").maxAge(3600);
  }
 }
