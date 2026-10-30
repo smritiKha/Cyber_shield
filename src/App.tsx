@@ -191,15 +191,22 @@ export default function App() {
     let active = true
     ;(async () => {
       try {
-        const [who, stored] = await Promise.all([api.me(token), api.load(token)])
+        const who = await api.me(token)
         if (!active) return
         setAccount(who)
-        setProgress(normalizeProgress(stored.progress) ?? initial)
-        setSyncStatus('Account progress loaded')
-        setSyncReady(true)
+        try {
+          const stored = await api.load(token)
+          if (!active) return
+          setProgress(normalizeProgress(stored.progress) ?? initial)
+          setSyncStatus('Account progress loaded')
+          setSyncReady(true)
+        } catch (error) {
+          if (!active) return
+          setSyncStatus('Signed in. Saved progress unavailable: '+(error instanceof Error ? error.message : 'Server error'))
+        }
       } catch {
         if (!active) return
-        clearToken();sessionRef.current=null;setAccount(null);setSyncStatus('Session expired or server unavailable. Guest mode is active.');setSyncReady(true)
+        clearToken();sessionRef.current=null;setAccount(null);setSyncStatus('Session expired or backend unavailable. Please sign in again.');setSyncReady(true)
       } finally { if (active) setAccountLoading(false) }
     })()
     return () => { active=false }
